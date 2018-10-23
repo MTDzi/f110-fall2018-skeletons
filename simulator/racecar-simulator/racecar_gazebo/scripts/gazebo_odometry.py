@@ -14,16 +14,22 @@ from std_msgs.msg import Header
 import numpy as np
 import math
 import tf2_ros
+import random
+import tf
 
 class OdometryNode:
     # Set publishers
     pub_odom = rospy.Publisher('/vesc/odom', Odometry, queue_size=1)
+    pub_odom_map = rospy.Publisher('/vesc/map', Odometry, queue_size=1)
 
     def __init__(self):
         # init internals
         self.last_received_pose = Pose()
         self.last_received_twist = Twist()
         self.last_recieved_stamp = None
+        self.last_x = None
+        self.last_y = None
+        self.last_pos = None
 
         # Set the update rate
         rospy.Timer(rospy.Duration(.05), self.timer_callback) # 20hz
@@ -53,23 +59,51 @@ class OdometryNode:
         cmd = Odometry()
         cmd.header.stamp = self.last_recieved_stamp
         cmd.header.frame_id = 'map'
-        cmd.child_frame_id = 'base_link' # This used to be odom
+        cmd.child_frame_id = 'base_link'
         cmd.pose.pose = self.last_received_pose
         cmd.twist.twist = self.last_received_twist
         self.pub_odom.publish(cmd)
 
-        tf = TransformStamped(
+        if self.last_x is None:
+            self.last_x = cmd.pose.pose.position.x
+            self.last_y = cmd.pose.pose.position.y
+            self.last_pos = cmd.pose.pose.position
+
+
+        p = Pose()
+        p.position.x = cmd.pose.pose.position.x
+        p.position.y = cmd.pose.pose.position.y
+        p.position.z = cmd.pose.pose.position.z
+        # p.x += random.uniform(-0.2,0.2)
+        # p.y += random.uniform(-0.2,0.2)
+        dist = math.sqrt((self.last_pos.x-p.position.x)**2 + (self.last_pos.y-p.position.y)**2)
+        self.last_pos.x = cmd.pose.pose.position.x
+        self.last_pos.y = cmd.pose.pose.position.y
+
+
+        roll, pitch, yaw = tf.transformations.euler_from_quaternion([cmd.pose.pose.orientation.x, cmd.pose.pose.orientation.y, cmd.pose.pose.orientation.z, cmd.pose.pose.orientation.w])
+
+        # dist=dist*1.1
+        # yaw = yaw*1.05
+
+
+        p.position.x = self.last_x + math.cos(yaw) * dist
+        p.position.y = self.last_y + math.sin(yaw) * dist
+        self.last_x=p.position.x
+        self.last_y=p.position.y
+        _tf = TransformStamped(
             header=Header(
                 frame_id=cmd.header.frame_id,
                 stamp=cmd.header.stamp
             ),
             child_frame_id=cmd.child_frame_id,
             transform=Transform(
-                translation=cmd.pose.pose.position,
+                translation=p.position,
                 rotation=cmd.pose.pose.orientation
             )
         )
-        self.tf_pub.sendTransform(tf)
+
+        self.tf_pub.sendTransform(_tf)
 
 # Start the node
 if __name__ == '__main__':

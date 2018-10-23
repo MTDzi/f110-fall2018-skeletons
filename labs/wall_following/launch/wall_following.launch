@@ -1,12 +1,15 @@
 <?xml version="1.0"?>
 <launch>
   <include file="$(find racecar_gazebo)/launch/racecar.launch">
-	<arg name="world_name" value="track_levine"/>
+	<arg name="world_name" value="track_porto"/>
   </include>
 
   # output="screen" allows us to see print statements
-  <node pkg="wall_following" name="pid_error_node" type="pid_error.py" output="screen"/> 
-  <node pkg="wall_following" name="control_node" type="control.py" output="screen"/>
+  <node pkg="wall_following" name="pid_error_node" type="pid_error.py" output="screen"/>
+  <!-- <node pkg="wall_following" name="control_node" type="control.py" output="screen"/> -->
+  <!-- <node pkg="wall_following" name="control_node" type="sim_ultimate_racer_naive_karol.py" output="screen"/> -->
+  <node pkg="ultimate_racer4" name="ultimate_racer4" type="ultimate_racer_in_cpp4" output="screen" args="1570 1600 3500 8.0 9.5 60 1.0 20 70 0.45 0.5"/>
+
   <node pkg="wall_following" name="sim_connector_node" type="sim_connector.py" output="screen"/>
 
 </launch>
