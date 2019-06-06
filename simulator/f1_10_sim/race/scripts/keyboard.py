@@ -9,8 +9,8 @@ pub = rospy.Publisher('drive_parameters', drive_param, queue_size=10)
 
 keyBindings = {
   'w':(1,0),
-  'd':(1,-1),
-  'a':(1,1),
+  'd':(1,-2),
+  'a':(1,2),
   's':(-1,0),
 }
 
@@ -110,7 +110,7 @@ if __name__=="__main__":
 # 		key = stdscr.getch()
 # 		stdscr.refresh()
 # 	#	signal.alarm(0)
-# 		if key == curses.KEY_UP: 
+# 		if key == curses.KEY_UP:
 # 			forward = forward + 1
 # 			stdscr.addstr(2, 20, "Up  ")
 # 			stdscr.addstr(2, 25, '%.2f' % forward)
@@ -147,4 +147,3 @@ if __name__=="__main__":
 	# rospy.init_node('keyboard_talker', anonymous=True)
 	# rospy.Subscriber('drive_parameters', drive_param, vel_and_angle)
 	# rospy.spin()
-
